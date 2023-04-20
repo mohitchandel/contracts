@@ -28,7 +28,6 @@ contract HopDirectGasETH is Test {
     uint256 destinationChainId;
     uint256 deadline;
 
-
     uint256 amountUSDC;
     uint256 amountBonderFeeUSDC;
     uint256 amountOutMinUSDC;
@@ -41,7 +40,6 @@ contract HopDirectGasETH is Test {
     bytes forwardNativeSelector;
     bytes packedNativeSelector;
     bytes packedNativeYulSelector;
-
 
     function fork() internal {
         string memory rpcUrl = vm.envString("ETH_NODE_URI_MAINNET");
@@ -101,14 +99,14 @@ contract HopDirectGasETH is Test {
             bytes4(uint32(destinationChainId)), // destinationChainId
             bytes16(uint128(amountOutMinNative)), // destinationAmountOutMin
             bytes20(HOP_NATIVE_BRIDGE), // hopBridge
-            bytes20(address(0)),    // relayer
-            bytes16(uint128(0))     // relayerFee
+            bytes20(address(0)), // relayer
+            bytes16(uint128(0)) // relayerFee
         );
     }
 
     function testCallHopNativeL1() public {
         vm.startPrank(WHALE);
-        hopBridgeNative.sendToL2{ value: amountNative}(
+        hopBridgeNative.sendToL2{ value: amountNative }(
             destinationChainId,
             RECEIVER,
             amountNative,
@@ -122,7 +120,7 @@ contract HopDirectGasETH is Test {
 
     function testBridgeNativeL1Forward() public {
         vm.startPrank(WHALE);
-        hopdirect.bridgeNativeL1Forward{ value: amountNative}(
+        hopdirect.bridgeNativeL1Forward{ value: amountNative }(
             transactionId,
             HOP_NATIVE_BRIDGE,
             forwardNative
@@ -132,7 +130,7 @@ contract HopDirectGasETH is Test {
 
     function testBridgeNativeL1Forward2() public {
         vm.startPrank(WHALE);
-        hopdirect.bridgeNativeL1Forward2{ value: amountNative}(
+        hopdirect.bridgeNativeL1Forward2{ value: amountNative }(
             transactionId,
             HOP_NATIVE_BRIDGE,
             forwardNativeSelector
@@ -142,7 +140,7 @@ contract HopDirectGasETH is Test {
 
     function testBridgeNativeL1Min() public {
         vm.startPrank(WHALE);
-        hopdirect.bridgeNativeL1Min{ value: amountNative}(
+        hopdirect.bridgeNativeL1Min{ value: amountNative }(
             transactionId,
             RECEIVER,
             destinationChainId,
@@ -157,7 +155,9 @@ contract HopDirectGasETH is Test {
 
     function testBridgeNativeL1Packed() public {
         vm.startPrank(WHALE);
-        (bool success, ) = address(hopdirect).call{ value: amountNative}(packedNativeSelector);
+        (bool success, ) = address(hopdirect).call{ value: amountNative }(
+            packedNativeSelector
+        );
         if (!success) {
             revert();
         }
@@ -166,7 +166,9 @@ contract HopDirectGasETH is Test {
 
     function testBridgeNativeL1PackedYul() public {
         vm.startPrank(WHALE);
-        (bool success, ) = address(hopdirect).call{ value: amountNative}(packedNativeSelector);
+        (bool success, ) = address(hopdirect).call{ value: amountNative }(
+            packedNativeSelector
+        );
         if (!success) {
             revert();
         }

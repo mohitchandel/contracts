@@ -10,9 +10,7 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 contract HopDirect is ILiFi {
     /// External Methods ///
 
-    event LiFiTransactionId(
-        bytes8 transactionId
-    );
+    event LiFiTransactionId(bytes8 transactionId);
 
     // for L1
     // precompiled
@@ -23,18 +21,13 @@ contract HopDirect is ILiFi {
         bytes calldata data
     ) external payable {
         (bool success, ) = hopBridge.call{ value: msg.value }(
-            bytes.concat(
-                IHopBridge.sendToL2.selector,
-                data
-            )
+            bytes.concat(IHopBridge.sendToL2.selector, data)
         );
         if (!success) {
             revert();
         }
 
-        emit LiFiTransactionId(
-            transactionId
-        );
+        emit LiFiTransactionId(transactionId);
     }
 
     // strangly more expensive:
@@ -43,16 +36,12 @@ contract HopDirect is ILiFi {
         address hopBridge,
         bytes calldata data
     ) external payable {
-        (bool success, ) = hopBridge.call{ value: msg.value }(
-            data
-        );
+        (bool success, ) = hopBridge.call{ value: msg.value }(data);
         if (!success) {
             revert();
         }
 
-        emit LiFiTransactionId(
-            transactionId
-        );
+        emit LiFiTransactionId(transactionId);
     }
 
     // TODO: ERC20, token+amount, precompiled calldata for hop, transferId log
@@ -79,16 +68,16 @@ contract HopDirect is ILiFi {
             relayerFee
         );
 
-        emit LiFiTransactionId(
-            transactionId
-        );
+        emit LiFiTransactionId(transactionId);
     }
+
     // TODO: ERC20, min params, transferId log
 
     // native, packed data, transferId log
-    function bridgeNativeL1Packed(
-    ) external payable {
-        IHopBridge(address(bytes20(msg.data[52:72]))).sendToL2{ value: msg.value }(
+    function bridgeNativeL1Packed() external payable {
+        IHopBridge(address(bytes20(msg.data[52:72]))).sendToL2{
+            value: msg.value
+        }(
             uint256(uint32(bytes4(msg.data[32:36]))),
             address(bytes20(msg.data[12:32])),
             msg.value,
@@ -98,37 +87,61 @@ contract HopDirect is ILiFi {
             uint256(uint128(bytes16(msg.data[92:108])))
         );
 
-        emit LiFiTransactionId(
-            bytes8(msg.data[4:12])
-        );
+        emit LiFiTransactionId(bytes8(msg.data[4:12]));
     }
 
     // native, packed data, transferId log
     function bridgeNativeL1PackedYul() external payable {
         assembly {
-
-        // Prepare calldata for sendToL2
+            // Prepare calldata for sendToL2
             mstore(0, 0x5c6bc100) // sendToL2 function selector
             mstore(4, and(calldataload(32), 0xFFFFFFFF))
-            mstore(8, and(calldataload(12), 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF000000000000000000000000))
+            mstore(
+                8,
+                and(
+                    calldataload(12),
+                    0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF000000000000000000000000
+                )
+            )
             mstore(28, callvalue())
-            mstore(44, and(calldataload(36), 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF))
+            mstore(
+                44,
+                and(calldataload(36), 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF)
+            )
             mstore(60, add(timestamp(), 604800))
-            mstore(68, and(calldataload(72), 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF000000000000000000000000))
-            mstore(88, and(calldataload(92), 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF))
+            mstore(
+                68,
+                and(
+                    calldataload(72),
+                    0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF000000000000000000000000
+                )
+            )
+            mstore(
+                88,
+                and(calldataload(92), 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF)
+            )
 
-        // Perform sendToL2
-            let success := call(gas(), and(calldataload(52), 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF000000000000000000000000), callvalue(), 0, 104, 0, 0)
+            // Perform sendToL2
+            let success := call(
+                gas(),
+                and(
+                    calldataload(52),
+                    0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF000000000000000000000000
+                ),
+                callvalue(),
+                0,
+                104,
+                0,
+                0
+            )
             if iszero(success) {
                 revert(0, 0)
             }
 
-        // Emit LiFiTransactionId event
+            // Emit LiFiTransactionId event
             log1(0, 8, and(calldataload(4), 0xFFFFFFFFFFFFFFFF))
         }
     }
 
     // TODO: ERC20, packed data, transferId log
 }
-
-

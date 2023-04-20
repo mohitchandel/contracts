@@ -7,7 +7,7 @@ import { ERC20 } from "solmate/tokens/ERC20.sol";
 import { HopDirect } from "lifi/Facets/HopFacetDirect.sol";
 import { console } from "../utils/Console.sol";
 
-contract HopGasTest is Test {
+contract HopDirectGasETH is Test {
     address internal constant HOP_USDC_BRIDGE =
         0x3666f603Cc164936C1b87e207F36BEBa4AC5f18a;
     address internal constant HOP_NATIVE_BRIDGE =
@@ -40,6 +40,7 @@ contract HopGasTest is Test {
     bytes forwardNative;
     bytes forwardNativeSelector;
     bytes packedNativeSelector;
+    bytes packedNativeYulSelector;
 
 
     function fork() internal {
@@ -93,6 +94,16 @@ contract HopGasTest is Test {
             bytes20(address(0)),
             bytes16(uint128(0))
         );
+        packedNativeYulSelector = bytes.concat(
+            HopDirect.bridgeNativeL1PackedYul.selector,
+            bytes8(transactionId), // transactionId
+            bytes20(RECEIVER), // receiver
+            bytes4(uint32(destinationChainId)), // destinationChainId
+            bytes16(uint128(amountOutMinNative)), // destinationAmountOutMin
+            bytes20(HOP_NATIVE_BRIDGE), // hopBridge
+            bytes20(address(0)),    // relayer
+            bytes16(uint128(0))     // relayerFee
+        );
     }
 
     function testCallHopNativeL1() public {
@@ -145,6 +156,15 @@ contract HopGasTest is Test {
     }
 
     function testBridgeNativeL1Packed() public {
+        vm.startPrank(WHALE);
+        (bool success, ) = address(hopdirect).call{ value: amountNative}(packedNativeSelector);
+        if (!success) {
+            revert();
+        }
+        vm.stopPrank();
+    }
+
+    function testBridgeNativeL1PackedYul() public {
         vm.startPrank(WHALE);
         (bool success, ) = address(hopdirect).call{ value: amountNative}(packedNativeSelector);
         if (!success) {

@@ -40,6 +40,7 @@ contract HopDirectGasETH is Test {
     bytes forwardNativeSelector;
     bytes packedNativeSelector;
     bytes packedNativeYulSelector;
+    HopDirect.HopData nativeStruct;
 
     function fork() internal {
         string memory rpcUrl = vm.envString("ETH_NODE_URI_MAINNET");
@@ -94,6 +95,16 @@ contract HopDirectGasETH is Test {
         );
         packedNativeYulSelector = bytes.concat(
             HopDirect.bridgeNativeL1PackedYul.selector,
+            bytes8(transactionId), // transactionId
+            bytes20(RECEIVER), // receiver
+            bytes4(uint32(destinationChainId)), // destinationChainId
+            bytes16(uint128(amountOutMinNative)), // destinationAmountOutMin
+            bytes20(HOP_NATIVE_BRIDGE), // hopBridge
+            bytes20(address(0)), // relayer
+            bytes16(uint128(0)) // relayerFee
+        );
+
+        nativeStruct = HopDirect.HopData(
             bytes8(transactionId), // transactionId
             bytes20(RECEIVER), // receiver
             bytes4(uint32(destinationChainId)), // destinationChainId
@@ -161,6 +172,12 @@ contract HopDirectGasETH is Test {
         if (!success) {
             revert();
         }
+        vm.stopPrank();
+    }
+
+    function testBridgeNativeL1Struct() public {
+        vm.startPrank(WHALE);
+        hopdirect.bridgeNativeL1Struct{ value: amountNative }(nativeStruct);
         vm.stopPrank();
     }
 

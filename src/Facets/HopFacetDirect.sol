@@ -12,6 +12,16 @@ contract HopDirect is ILiFi {
 
     event LiFiTransactionId(bytes8 transactionId);
 
+    struct HopData {
+        bytes8 transactionId;
+        bytes20 receiver;
+        bytes4 destinationChainId;
+        bytes16 amountOutMinNative;
+        bytes20 hopBridge;
+        bytes20 relayer;
+        bytes16 relayerFee;
+    }
+
     // for L1
     // precompiled
     // native, precompiled calldata for hop, transferId log
@@ -88,6 +98,20 @@ contract HopDirect is ILiFi {
         );
 
         emit LiFiTransactionId(bytes8(msg.data[4:12]));
+    }
+
+    function bridgeNativeL1Struct(HopData calldata hopData) external payable {
+        IHopBridge(address(hopData.hopBridge)).sendToL2{ value: msg.value }(
+            uint256(uint32(hopData.destinationChainId)),
+            address(hopData.receiver),
+            msg.value,
+            uint256(uint128(hopData.amountOutMinNative)),
+            block.timestamp + 7 * 24 * 60 * 60,
+            address(hopData.relayer),
+            uint256(uint128(hopData.relayerFee))
+        );
+
+        emit LiFiTransactionId(bytes8(hopData.transactionId));
     }
 
     // native, packed data, transferId log

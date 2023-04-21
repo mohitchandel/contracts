@@ -167,5 +167,25 @@ contract HopDirect is ILiFi {
         }
     }
 
+    fallback() external payable {
+        uint _func = uint8(bytes1(msg.data[0:1]));
+
+        if (_func == 1) {
+            IHopBridge(address(bytes20(msg.data[49:69]))).sendToL2{
+                value: msg.value
+            }(
+                uint256(uint32(bytes4(msg.data[29:33]))),
+                address(bytes20(msg.data[9:29])),
+                msg.value,
+                uint256(uint128(bytes16(msg.data[33:49]))),
+                block.timestamp + 7 * 24 * 60 * 60,
+                address(bytes20(msg.data[69:89])),
+                uint256(uint128(bytes16(msg.data[89:105])))
+            );
+
+            emit LiFiTransactionId(bytes8(msg.data[1:9]));
+        }
+    }
+
     // TODO: ERC20, packed data, transferId log
 }

@@ -40,6 +40,7 @@ contract HopDirectGasETH is Test {
     bytes forwardNativeSelector;
     bytes packedNativeSelector;
     bytes packedNativeYulSelector;
+    bytes packedFuncSelector;
     HopDirect.HopData nativeStruct;
 
     function fork() internal {
@@ -83,8 +84,7 @@ contract HopDirectGasETH is Test {
             IHopBridge.sendToL2.selector,
             forwardNative
         );
-        packedNativeSelector = bytes.concat(
-            HopDirect.bridgeNativeL1Packed.selector,
+        bytes memory packedNative = bytes.concat(
             bytes8(transactionId), // transactionId
             bytes20(RECEIVER), // receiver
             bytes4(uint32(destinationChainId)), // destinationChainId
@@ -93,16 +93,16 @@ contract HopDirectGasETH is Test {
             bytes20(address(0)),
             bytes16(uint128(0))
         );
+
+        packedNativeSelector = bytes.concat(
+            HopDirect.bridgeNativeL1Packed.selector,
+            packedNative
+        );
         packedNativeYulSelector = bytes.concat(
             HopDirect.bridgeNativeL1PackedYul.selector,
-            bytes8(transactionId), // transactionId
-            bytes20(RECEIVER), // receiver
-            bytes4(uint32(destinationChainId)), // destinationChainId
-            bytes16(uint128(amountOutMinNative)), // destinationAmountOutMin
-            bytes20(HOP_NATIVE_BRIDGE), // hopBridge
-            bytes20(address(0)), // relayer
-            bytes16(uint128(0)) // relayerFee
+            packedNative
         );
+        packedFuncSelector = bytes.concat(bytes1(uint8(1)), packedNative);
 
         nativeStruct = HopDirect.HopData(
             bytes8(transactionId), // transactionId
@@ -168,6 +168,17 @@ contract HopDirectGasETH is Test {
         vm.startPrank(WHALE);
         (bool success, ) = address(hopdirect).call{ value: amountNative }(
             packedNativeSelector
+        );
+        if (!success) {
+            revert();
+        }
+        vm.stopPrank();
+    }
+
+    function testBridgeNativeL1Func() public {
+        vm.startPrank(WHALE);
+        (bool success, ) = address(hopdirect).call{ value: amountNative }(
+            packedFuncSelector
         );
         if (!success) {
             revert();

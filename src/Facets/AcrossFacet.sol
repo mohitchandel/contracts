@@ -13,7 +13,7 @@ import { Validatable } from "../Helpers/Validatable.sol";
 /// @title Across Facet
 /// @author LI.FI (https://li.fi)
 /// @notice Provides functionality for bridging through Across Protocol
-/// @custom:version 1.0.1
+/// @custom:version 1.0.2
 contract AcrossFacet is ILiFi, ReentrancyGuard, SwapperV2, Validatable {
     /// Storage ///
 
@@ -28,7 +28,7 @@ contract AcrossFacet is ILiFi, ReentrancyGuard, SwapperV2, Validatable {
     /// @param relayerFeePct The relayer fee in token percentage with 18 decimals.
     /// @param quoteTimestamp The timestamp associated with the suggested fee.
     struct AcrossData {
-        uint64 relayerFeePct;
+        int64 relayerFeePct;
         uint32 quoteTimestamp;
     }
 
@@ -110,7 +110,7 @@ contract AcrossFacet is ILiFi, ReentrancyGuard, SwapperV2, Validatable {
                 _acrossData.relayerFeePct,
                 _acrossData.quoteTimestamp,
                 "",
-                0
+                type(uint256).max
             );
         } else {
             LibAsset.maxApproveERC20(
@@ -126,7 +126,7 @@ contract AcrossFacet is ILiFi, ReentrancyGuard, SwapperV2, Validatable {
                 _acrossData.relayerFeePct,
                 _acrossData.quoteTimestamp,
                 "",
-                0
+                type(uint256).max
             );
         }
 

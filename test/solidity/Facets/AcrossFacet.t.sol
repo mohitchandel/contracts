@@ -71,7 +71,9 @@ contract AcrossFacetTest is TestBaseFacet {
         // produce valid AcrossData
         validAcrossData = AcrossFacet.AcrossData({
             relayerFeePct: 0,
-            quoteTimestamp: uint32(block.timestamp)
+            quoteTimestamp: uint32(block.timestamp),
+            message: "",
+            maxCount: type(uint256).max
         });
 
         vm.label(SPOKE_POOL, "SpokePool");
@@ -114,7 +116,9 @@ contract AcrossFacetTest is TestBaseFacet {
 
         AcrossFacet.AcrossData memory data = AcrossFacet.AcrossData(
             0, // Relayer fee
-            uint32(block.timestamp + 20 minutes)
+            uint32(block.timestamp + 20 minutes),
+            "",
+            type(uint256).max
         );
         acrossFacet.startBridgeTokensViaAcross(bridgeData, data);
         vm.stopPrank();
